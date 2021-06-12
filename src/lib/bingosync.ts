@@ -14,6 +14,8 @@ interface Events {
 	error: [Error];
 }
 
+export type CellIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25
+
 export type CellColor =
 	| "orange"
 	| "red"
@@ -137,6 +139,11 @@ export class Bingosync extends EventEmitter<Events> {
 	sessionId: string;
 
 	/**
+	 * Color of player.
+	 */
+	currentColor: CellColor;
+
+	/**
 	 * How frequently to do a full update of the board state from Bingosync's REST API.
 	 * These are done just to be extra paranoid and ensure that we don't miss things.
 	 */
@@ -227,6 +234,14 @@ export class Bingosync extends EventEmitter<Events> {
 		clearInterval(this._fullUpdateInterval);
 		this._destroyWebsocket();
 		this._setStatus("disconnected");
+	}
+
+	async changeColor(color: CellColor): Promise<void> {
+		// TODO
+	}
+
+	async tickGoal(cell: CellIndex, color?: CellColor) {
+		// TODO
 	}
 
 	private _setStatus(newStatus: SocketStatus): void {
