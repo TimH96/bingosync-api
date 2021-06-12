@@ -56,7 +56,7 @@ async function getNewSocketKey(
 		RoomJoinParameters,
 		"siteUrl" | "passphrase" | "playerName" | "roomCode" | "isSpectator"
 	>,
-): Promise<string> {
+): Promise<Array<string>> {
 	const parsedURL: URL = new URL(params.siteUrl)
 	const spec = params.isSpectator ? true : false
 	// POST join room
@@ -89,7 +89,7 @@ async function getNewSocketKey(
 	})
 	let [redirURL, sessionId] = await joinRoomProm
 	// GET socket key
-	return new Promise<string>((resolve, reject) => {
+	return new Promise<Array<string>>((resolve, reject) => {
 		const getKeyReq = request({
 			hostname: parsedURL.hostname,
 			path: redirURL,
@@ -99,7 +99,7 @@ async function getNewSocketKey(
 			}
 		}, res => {
 			res.on('data', function (chunk) {
-				resolve(JSON.parse(chunk)['socket_key'])
+				resolve([JSON.parse(chunk)['socket_key'], sessionId])
 			}); 
 		})
 		getKeyReq.on('error', error => {
@@ -187,7 +187,7 @@ export class Bingosync extends EventEmitter<Events> {
 		// It's okay though, because the _createWebSocket method creates an error handler
 		// which will detect an expired key, and automatically request a fresh one.
 		// So, we don't need to worry too much about checking if our saved key is expired here.
-		const socketKey =
+		const [socketKey, sessionId] =
 			(await getNewSocketKey({
 				siteUrl,
 				roomCode,
@@ -322,13 +322,14 @@ export class Bingosync extends EventEmitter<Events> {
 						}
 
 						this._numSocketAuthAttempts++;
+						const [socketKey, sessionId] = await getNewSocketKey(
+							this.roomParams,
+						)
 						this._websocket.send(
 							/* eslint-disable @typescript-eslint/camelcase */
 							JSON.stringify({
-								socket_key: await getNewSocketKey(
-									this.roomParams,
-								),
-							}),
+								socket_key: socketKey
+							})
 							/* eslint-enable @typescript-eslint/camelcase */
 						);
 						return;
