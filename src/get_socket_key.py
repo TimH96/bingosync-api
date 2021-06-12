@@ -5,11 +5,11 @@ from sys import argv
 out : dict
 try:
     res : requests.Response = requests.post(
-        'https://bingosync.com/api/join-room',
+        argv[1],
         data=json.dumps({
-            'room': argv[1],
-            'nickname': argv[2],
-            'password': argv[3]
+            'room': argv[2],
+            'nickname': argv[3],
+            'password': argv[4]
         }))
     out = res.json()
     out['session_id'] = res.request.headers['Cookie'].split('=')[1]
