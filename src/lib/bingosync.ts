@@ -62,12 +62,14 @@ async function getNewSocketKey(
 	>,
 ): Promise<string> {
 	const parsedURL: URL = new URL(params.siteUrl)
+	const spec = params.isSpectator ? true : false
 	// POST join room
 	const joinRoomProm: Promise<Array<string>> = new Promise((resolve, reject) =>  {
 		const joinRoomData: any = JSON.stringify({
 			room: params.roomCode,
 			nickname: params.playerName,
-			password: params.passphrase
+			password: params.passphrase,
+			is_spectator: spec
 		})
 		const joinRoomReq = request({
 			hostname: parsedURL.hostname,
