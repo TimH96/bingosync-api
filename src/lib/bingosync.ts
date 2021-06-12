@@ -219,6 +219,7 @@ export class Bingosync extends EventEmitter<Events> {
 		this._setStatus("connected");
 		this.isSpectator = isSpectator;
 		this.sessionId = sessionId
+		this.currentColor = 'red'
 
 		this._fullUpdateInterval = setInterval(() => {
 			this._fullUpdate().catch(error => {
@@ -237,11 +238,86 @@ export class Bingosync extends EventEmitter<Events> {
 	}
 
 	async changeColor(color: CellColor): Promise<void> {
-		// TODO
+		if (this.isSpectator) {
+			throw `Can't change color in spectator mode`
+		}
+		const parsedURL: URL = new URL(this.roomParams.siteUrl)
+		const col = color ? color : this.currentColor
+		// PUT color
+		return new Promise((resolve, reject) =>  {
+			const data: any = JSON.stringify({
+				room: this.roomParams.roomCode,
+				color: col
+			})
+			const changeColorReq = request({
+				hostname: parsedURL.hostname,
+				path: '/api/color',
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					'Content-Length': data.length,
+					'Cookie': `sessionid=${this.sessionId}` 
+				}
+			}, _res => {
+				this.currentColor = col
+				resolve()
+			})
+			changeColorReq.on('error', error => {
+				reject(error)
+			})
+			changeColorReq.write(data)
+			changeColorReq.end()
+		})
 	}
 
 	async tickGoal(cell: CellIndex, color?: CellColor) {
-		// TODO
+		if (this.isSpectator) {
+			throw `Can't tick goals in spectator mode`
+		}
+		const col = color ? color : this.currentColor
+		return this._goalCall(cell, col, false)
+	}
+
+	async untickGoal(cell: CellIndex, color?: CellColor) {
+		if (this.isSpectator) {
+			throw `Can't untick goals in spectator mode`
+		}
+		const col = color ? color : this.currentColor
+		return this._goalCall(cell, col, true)
+	}
+
+	private async _goalCall(
+		cell: CellIndex,
+		color: CellColor,
+		remove: boolean
+	): Promise<void> {
+		const parsedURL: URL = new URL(this.roomParams.siteUrl)
+		// PUT select
+		return new Promise((resolve, reject) =>  {
+			const data: any = JSON.stringify({
+				room: this.roomParams.roomCode,
+				color: color,
+				slot: cell,
+				remove_color: remove
+			})
+			const goalReq = request({
+				hostname: parsedURL.hostname,
+				path: '/api/select',
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					'Content-Length': data.length,
+					'Cookie': `sessionid=${this.sessionId}` 
+				}
+			}, _res => {
+				resolve()
+			})
+			goalReq.on('error', error => {
+				reject(error)
+			})
+			goalReq.write(data)
+			goalReq.end()
+		})
 	}
 
 	private _setStatus(newStatus: SocketStatus): void {
