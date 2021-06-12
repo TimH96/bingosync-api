@@ -127,6 +127,16 @@ export class Bingosync extends EventEmitter<Events> {
 	boardState: BoardState;
 
 	/**
+	 * Wether user is spectator or not
+	 */
+	isSpectator: boolean;
+
+	/**
+	 * Session ID used for POST requests.
+	 */
+	sessionId: string;
+
+	/**
 	 * How frequently to do a full update of the board state from Bingosync's REST API.
 	 * These are done just to be extra paranoid and ensure that we don't miss things.
 	 */
@@ -207,6 +217,8 @@ export class Bingosync extends EventEmitter<Events> {
 		};
 
 		this._setStatus("connected");
+		this.isSpectator = isSpectator;
+		this.sessionId = sessionId
 
 		this._fullUpdateInterval = setInterval(() => {
 			this._fullUpdate().catch(error => {
