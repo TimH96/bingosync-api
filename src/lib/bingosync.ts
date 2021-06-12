@@ -4,11 +4,11 @@ import * as WebSocket from "isomorphic-ws";
 import dbg from "debug";
 import { EventEmitter } from "eventemitter3";
 import * as equal from "fast-deep-equal";
-import { join } from 'path'
-import { ChildProcess, exec } from 'child_process';
+import { request } from 'https'
 
 // Ours
 import localStorage from "./isomorphic-localstorage";
+import { resolve } from "dns";
 
 const debug = dbg("bingosync-api");
 
@@ -58,28 +58,51 @@ type RawBoardState = Array<{
 async function getNewSocketKey(
 	params: Pick<
 		RoomJoinParameters,
-		"siteUrl" | "passphrase" | "playerName" | "roomCode"
+		"siteUrl" | "passphrase" | "playerName" | "roomCode" | "isSpectator"
 	>,
 ): Promise<string> {
-	const APIUrl: string = params.siteUrl + '/api/join-room'
-	const exePath: string = join(__dirname, '../../get_socket_key.exe')
-	const pyProm: Promise<string> = new Promise((resolve, reject) => {
-		const sockKeyProcess: ChildProcess = exec(`${exePath} ${APIUrl} ${params.roomCode} ${params.playerName} ${params.passphrase}`);
-
-		if (typeof sockKeyProcess) {
-			sockKeyProcess.stdout.on('data', function(data) {
-				resolve(data)
-			});
-		} else {
-			reject('Could not start socket key process')
-		}
+	const parsedURL: URL = new URL(params.siteUrl)
+	// POST join room
+	const joinRoomProm: Promise<Array<string>> = new Promise((resolve, reject) =>  {
+		const joinRoomData: any = JSON.stringify({
+			room: params.roomCode,
+			nickname: params.playerName,
+			password: params.passphrase
+		})
+		const joinRoomReq = request({
+			hostname: parsedURL.hostname,
+			path: '/api/join-room',
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Content-Length': joinRoomData.length
+			}
+		}, res => {
+			resolve([
+				res.headers.location,
+				res.headers["set-cookie"][0].split(';')[0].split('=')[1]
+			])
+		})
+		joinRoomReq.write(joinRoomData)
+		joinRoomReq.end()
 	})
-	const data: Record<string, string> = JSON.parse(await pyProm)
-	if ('error' in data) {
-		throw data['error']
-	} else {
-		return data['socket_key']
-	}
+	let [redirURL, sessionId] = await joinRoomProm
+	// GET socket key
+	return new Promise<string>((resolve, reject) => {
+		const getKeyReq = request({
+			hostname: parsedURL.hostname,
+			path: redirURL,
+			method: 'GET',
+			headers: {
+				'Cookie': `sessionid=${sessionId}`
+			}
+		}, res => {
+			res.on('data', function (chunk) {
+				resolve(JSON.parse(chunk)['socket_key'])
+			}); 
+		})
+		getKeyReq.end()
+	})
 }
 
 type SocketStatus = "connecting" | "connected" | "disconnected" | "error";
@@ -150,6 +173,7 @@ export class Bingosync extends EventEmitter<Events> {
 		roomCode,
 		passphrase,
 		playerName,
+		isSpectator = true
 	}: RoomJoinParameters): Promise<void> {
 		this._setStatus("connecting");
 		clearInterval(this._fullUpdateInterval);
@@ -166,6 +190,7 @@ export class Bingosync extends EventEmitter<Events> {
 				roomCode,
 				passphrase,
 				playerName,
+				isSpectator
 			}));
 
 		// Save the room params so other methods can read them
