@@ -320,6 +320,34 @@ export class Bingosync extends EventEmitter<Events> {
 		})
 	}
 
+	async sendChatMessage(msg: string): Promise<void> {
+		const parsedURL: URL = new URL(this.roomParams.siteUrl)
+		// PUT color
+		return new Promise((resolve, reject) =>  {
+			const data: any = JSON.stringify({
+				room: this.roomParams.roomCode,
+				text: msg
+			})
+			const chatReq = request({
+				hostname: parsedURL.hostname,
+				path: '/api/chat',
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					'Content-Length': data.length,
+					'Cookie': `sessionid=${this.sessionId}` 
+				}
+			}, _res => {
+				resolve()
+			})
+			chatReq.on('error', error => {
+				reject(error)
+			})
+			chatReq.write(data)
+			chatReq.end()
+		})
+	}
+
 	private _setStatus(newStatus: SocketStatus): void {
 		(this as any).status = newStatus; // eslint-disable-line @typescript-eslint/no-explicit-any
 		this.emit("status-changed", newStatus);
