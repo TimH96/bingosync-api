@@ -83,6 +83,9 @@ async function getNewSocketKey(
 				res.headers["set-cookie"][0].split(';')[0].split('=')[1]
 			])
 		})
+		joinRoomReq.on('error', error => {
+			reject(error)
+		})
 		joinRoomReq.write(joinRoomData)
 		joinRoomReq.end()
 	})
@@ -100,6 +103,9 @@ async function getNewSocketKey(
 			res.on('data', function (chunk) {
 				resolve(JSON.parse(chunk)['socket_key'])
 			}); 
+		})
+		getKeyReq.on('error', error => {
+			reject(error)
 		})
 		getKeyReq.end()
 	})
