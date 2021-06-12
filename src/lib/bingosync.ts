@@ -6,10 +6,6 @@ import { EventEmitter } from "eventemitter3";
 import * as equal from "fast-deep-equal";
 import { request } from 'https'
 
-// Ours
-import localStorage from "./isomorphic-localstorage";
-import { resolve } from "dns";
-
 const debug = dbg("bingosync-api");
 
 interface Events {
@@ -192,7 +188,6 @@ export class Bingosync extends EventEmitter<Events> {
 		// which will detect an expired key, and automatically request a fresh one.
 		// So, we don't need to worry too much about checking if our saved key is expired here.
 		const socketKey =
-			this._loadCachedSocketKey(playerName, roomCode) ||
 			(await getNewSocketKey({
 				siteUrl,
 				roomCode,
@@ -357,12 +352,7 @@ export class Bingosync extends EventEmitter<Events> {
 				}
 
 				if (!settled) {
-					// If we're here, then we know this socket key is valid, and we can save it for later.
-					this._saveSocketKey(
-						socketKey,
-						this.roomParams.playerName,
-						this.roomParams.roomCode,
-					);
+					// If we're here, then we know this socket key is valid
 					this._setStatus("connected");
 					settled = true;
 					resolve();
@@ -416,32 +406,5 @@ export class Bingosync extends EventEmitter<Events> {
 		}
 
 		this._websocket = null;
-	}
-
-	private _computeLocalStorageKey(
-		playerName: string,
-		roomCode: string,
-	): string {
-		return `${this.localStoragePrefix}:socket-key:${playerName}:${roomCode}`;
-	}
-
-	private _loadCachedSocketKey(
-		playerName: string,
-		roomCode: string,
-	): string | null {
-		return localStorage.getItem(
-			this._computeLocalStorageKey(playerName, roomCode),
-		);
-	}
-
-	private _saveSocketKey(
-		socketKey: string,
-		playerName: string,
-		roomCode: string,
-	): void {
-		return localStorage.setItem(
-			this._computeLocalStorageKey(playerName, roomCode),
-			socketKey,
-		);
 	}
 }
