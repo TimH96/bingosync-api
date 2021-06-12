@@ -418,7 +418,7 @@ export class Bingosync extends EventEmitter<Events> {
 						}
 
 						this._numSocketAuthAttempts++;
-						const [socketKey, sessionId] = await getNewSocketKey(
+						const [socketKey, _sessionId] = await getNewSocketKey(
 							this.roomParams,
 						)
 						this._websocket.send(
