@@ -4,6 +4,8 @@ import * as WebSocket from "isomorphic-ws";
 import dbg from "debug";
 import { EventEmitter } from "eventemitter3";
 import * as equal from "fast-deep-equal";
+import { join } from 'path'
+import { ChildProcess, exec } from 'child_process';
 
 // Ours
 import localStorage from "./isomorphic-localstorage";
@@ -34,6 +36,7 @@ export interface RoomJoinParameters {
 	passphrase?: string;
 	siteUrl?: string;
 	socketUrl?: string;
+	isSpectator?: boolean;
 }
 
 export interface BoardCell {
@@ -58,39 +61,25 @@ async function getNewSocketKey(
 		"siteUrl" | "passphrase" | "playerName" | "roomCode"
 	>,
 ): Promise<string> {
-	const roomUrl = new URL("/api/join-room", params.siteUrl);
-	/* eslint-disable @typescript-eslint/camelcase */
-	const response = await ky
-		.post(roomUrl, {
-			json: {
-				room: params.roomCode,
-				nickname: params.playerName,
-				password: params.passphrase,
+	const APIUrl: string = params.siteUrl + '/api/join-room'
+	const exePath: string = join(__dirname, '../../get_socket_key.exe')
+	const pyProm: Promise<string> = new Promise((resolve, reject) => {
+		const sockKeyProcess: ChildProcess = exec(`${exePath} ${APIUrl} ${params.roomCode} ${params.playerName} ${params.passphrase}`);
 
-				// We only support spectating at this time
-				is_spectator: true,
-			},
-			hooks: {
-				afterResponse: [
-					// Ky throws an error when a POST gets a redirect response,
-					// but that's what bingosync actually does.
-					// So, we have to use a response hook to work around this and prevent
-					// ky from throwing an exception.
-					// eslint-disable-next-line @typescript-eslint/promise-function-async
-					response => {
-						const location = response.headers.get("Location");
-						if (!location) {
-							return response;
-						}
-
-						return ky.get(location);
-					},
-				],
-			},
-		})
-		.json<{ socket_key: string }>();
-	/* eslint-enable @typescript-eslint/camelcase */
-	return response.socket_key;
+		if (typeof sockKeyProcess) {
+			sockKeyProcess.stdout.on('data', function(data) {
+				resolve(data)
+			});
+		} else {
+			reject('Could not start socket key process')
+		}
+	})
+	const data: Record<string, string> = JSON.parse(await pyProm)
+	if ('error' in data) {
+		throw data['error']
+	} else {
+		return data['socket_key']
+	}
 }
 
 type SocketStatus = "connecting" | "connected" | "disconnected" | "error";
