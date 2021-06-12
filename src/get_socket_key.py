@@ -14,5 +14,5 @@ try:
     out = res.json()
     out['session_id'] = res.request.headers['Cookie'].split('=')[1]
 except Exception as error:
-    out = {'error': error}
-print(out)
+    out = {'error': 'external script execution failed'}
+print(json.dumps(out))
