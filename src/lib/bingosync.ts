@@ -150,13 +150,6 @@ export class Bingosync extends EventEmitter<Events> {
 	WebSocketClass = WebSocket;
 
 	/**
-	 * A string to prepend to all localstorage keys.
-	 * Shouldn't be necessary to change this for prod,
-	 * but we have to change it for testing.
-	 */
-	localStoragePrefix = "bingosync-api";
-
-	/**
 	 * How many times to attempt to authenticate with the socket
 	 * before giving up and emitting an "error" event.
 	 */
