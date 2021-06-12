@@ -10,21 +10,15 @@
 	],
 	"scripts": {
 		"pretest": "npm run lint && npm run build",
-		"test": "mocha",
-		"test only": "mocha",
 		"build": "tsc -p tsconfig.json",
-		"lint": "npm-run-all -s lint:*",
-		"lint:prettier": "prettier --list-different \"**/*.{ts,tsx,json,md,yml}\"",
-		"lint:eslint": "eslint \"./**/*.{ts,tsx}\"",
-		"fix": "npm-run-all -s fix:*",
-		"fix:prettier": "prettier --write \"**/*.{ts,tsx,json,md,yml}\"",
-		"fix:eslint": "npm run lint:eslint -- --fix "
+		"lint": "eslint \"./**/*.{ts,tsx}\""
 	},
 	"author": "Games Done Quick, LLC <engineering@gamesdonequick.com>",
 	"license": "MIT",
 	"devDependencies": {
 		"@commitlint/cli": "^8.1.0",
 		"@commitlint/config-conventional": "^8.1.0",
+		"@gamesdonequick/eslint-config": "^2.2.1",
 		"@types/chai": "^4.2.0",
 		"@types/chai-as-promised": "^7.1.2",
 		"@types/debug": "^4.1.5",
