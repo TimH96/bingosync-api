@@ -53,6 +53,28 @@ type RawBoardState = Array<{
 	name: string;
 }>;
 
+/** Counts scores for each color and returns the corresponding mapping */
+export function getScoresFromBoard(state: BoardState): Record<CellColor, number> {
+	let scores: Record<CellColor, number> = {
+		"orange": 0,
+		"red": 0,
+		"blue": 0,
+		"green": 0,
+		"purple": 0,
+		"navy": 0,
+		"teal": 0,
+		"brown": 0,
+		"pink": 0,
+		"yellow": 0
+	}
+	state.cells.forEach( cell => {
+		cell.colors.forEach ( color => {
+			scores[color] = scores[color]+1
+		})
+	})
+	return scores
+}
+
 async function getNewSocketKey(
 	params: Pick<
 		RoomJoinParameters,
