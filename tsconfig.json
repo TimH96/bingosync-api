@@ -14,7 +14,7 @@
 		"noImplicitAny": true,
 		"strictNullChecks": false,
 		"suppressImplicitAnyIndexErrors": true,
-		"noUnusedLocals": true,
+		"noUnusedLocals": false,
 		"declaration": true,
 		"allowSyntheticDefaultImports": false,
 		"target": "ES6"
