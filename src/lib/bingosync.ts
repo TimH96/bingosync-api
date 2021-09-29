@@ -74,6 +74,9 @@ type RawBoardState = Array<{
 export function getScoresFromBoard(state: BoardState): Record<CellColor, number> {
 	let scores: Record<string, number> = {}
 	for (const color in CellColorsEnum) {
+		if (!isNaN(Number(color))) {
+			continue
+		}
 		scores[color] = 0
 	}
 	state.cells.forEach( cell => {
