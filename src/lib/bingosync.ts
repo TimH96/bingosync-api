@@ -28,6 +28,23 @@ export type CellColor =
 	| "pink"
 	| "yellow";
 
+/** 
+ * enum over CellColors to make them programatically available at runtime 
+ * @todo potentially replace CellColor type entirely with this
+ */
+export enum CellColorsEnum {
+	"orange" = 0,
+	"red",
+	"blue",
+	"green",
+	"purple",
+	"navy",
+	"teal",
+	"brown",
+	"pink",
+	"yellow"
+} 
+
 export interface RoomJoinParameters {
 	roomCode: string;
 	playerName: string;
