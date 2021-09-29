@@ -72,17 +72,9 @@ type RawBoardState = Array<{
 
 /** Counts scores for each color and returns the corresponding mapping */
 export function getScoresFromBoard(state: BoardState): Record<CellColor, number> {
-	let scores: Record<CellColor, number> = {
-		"orange": 0,
-		"red": 0,
-		"blue": 0,
-		"green": 0,
-		"purple": 0,
-		"navy": 0,
-		"teal": 0,
-		"brown": 0,
-		"pink": 0,
-		"yellow": 0
+	let scores: Record<string, number> = {}
+	for (const color in CellColorsEnum) {
+		scores[color] = 0
 	}
 	state.cells.forEach( cell => {
 		cell.colors.forEach ( color => {
